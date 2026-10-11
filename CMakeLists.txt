@@ -54,7 +54,7 @@ set(COMPONENT_SRCS      "${COMPONENT_DIR}/simw-top/hostlib/hostLib/inc/se05x_con
                         "${COMPONENT_DIR}/simw-top/hostlib/hostLib/inc/nxScp03_Apis.h"
                         "${COMPONENT_DIR}/simw-top/hostlib/hostLib/inc/nxScp03_Const.h"
                         "${COMPONENT_DIR}/simw-top/hostlib/hostLib/inc/nxScp03_Types.h"
-                        "${COMPONENT_DIR}/simw-top/sss/src/sscp/fsl_sss_sscp.c"
+                        "${COMPONENT_DIR}/simw-top/sss/src/fsl_sss_apis.c"
                         "${COMPONENT_DIR}/simw-top/sss/src/mbedtls/fsl_sss_mbedtls_apis.c"
                         "${COMPONENT_DIR}/simw-top/sss/ex/src/ex_sss_boot.c"
                         "${COMPONENT_DIR}/simw-top/sss/ex/src/ex_sss_boot_connectstring.c"
@@ -67,7 +67,8 @@ set(COMPONENT_SRCS      "${COMPONENT_DIR}/simw-top/hostlib/hostLib/inc/se05x_con
                         "${COMPONENT_DIR}/simw-top/sss/ex/src/ex_sss_boot_sw.c"
                         "${COMPONENT_DIR}/simw-top/sss/src/keystore/keystore_cmn.c"
                         "${COMPONENT_DIR}/simw-top/sss/src/keystore/keystore_pc.c"
-                        "${COMPONENT_DIR}/i2c_esp32.c"
+#                        "${COMPONENT_DIR}/simw-top/ext/mbedtls/library/entropy.c"
+                        "${COMPONENT_DIR}/simw-top/hostlib/hostLib/se05x_03_xx_xx/se05x_APDU.c"
                         )
 
 
@@ -82,17 +83,18 @@ set(COMPONENT_INCLUDEDIRS
                             "simw-top/hostlib/hostLib/libCommon/smCom/T1oI2C"
                             "simw-top/hostlib/hostLib/se05x_03_xx_xx"
                             "simw-top/hostlib/hostLib/tstUtil"
-                            "simw-top/hostlib/useCase/common"
+                            # "simw-top/hostlib/useCase/common"
                             "simw-top/sss/inc"
                             "simw-top/sss/ex/inc"
                             "simw-top/sss/ex/src"
                             #"simw-top/sss/port/default"
                             "simw-top/sss/plugin/mbedtls"
+                            "simw-top/ext/mbedtls/include"
                             # ---> !!!!CHANGE WITH RELATIVE PATH!!!! <---
-                            "C:/Users/Alessandro/esp/esp-idf/components/freertos/include/freertos"
+                            "/home/asantos/esp/esp-idf/components/freertos/FreeRTOS-Kernel/include/freertos"
                             )
 
-set(COMPONENT_REQUIRES      "mbedtls" "freertos" "driver")
+set(COMPONENT_REQUIRES      "mbedtls" "freertos" "esp_driver_gpio" "esp_driver_i2c")
 
 set(COMPONENT_EXCLUDE_SRCS  
                             "simw-top/sss/ex/inc/ex_sss_auth.h"
@@ -111,13 +113,14 @@ set(COMPONENT_CFLAGS
                         "FSL_RTOS_FREE_RTOS"
                         "SE05X_Auth=PlatfSCP03"
                         "EXFL_SE050_AUTH_PlatfSCP03"
+                        "SSS_HAVE_SE05X_Symmetric"
                         )
 
 idf_component_register(
     SRC_DIRS "${COMPONENT_SRCDIRS}" 
     INCLUDE_DIRS "${COMPONENT_INCLUDEDIRS}" 
     REQUIRES "${COMPONENT_REQUIRES}" 
-    EXCLUDE_SRCS "i2c_esp32.c" "${COMPONENT_EXCLUDE_SRCS}"
+    EXCLUDE_SRCS "${COMPONENT_EXCLUDE_SRCS}"
     )
 
 idf_component_get_property(mbedtls_dir mbedtls COMPONENT_DIR)

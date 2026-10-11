@@ -1,7 +1,7 @@
 #ifndef _I2C_ESP32_H_
 #define _I2C_ESP32_H_
 
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 
 // Change the following values accordind to board. Please note that ESP32-C3 has only I2C_NUM_0.
 #define I2C_ESP32_SDA_PIN           5
