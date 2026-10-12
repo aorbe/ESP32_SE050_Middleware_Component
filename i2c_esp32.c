@@ -1,4 +1,3 @@
-#include "i2c_a7.h"
 #include "driver/i2c_master.h"
 #include "esp_log.h"
 #include "sm_timer.h"
@@ -52,12 +51,12 @@ i2c_error_t axI2CInit(void **conn_ctx, const char *pDevName)
         ESP_LOGI(TAG, "SE Using I2C 0");
         rc = i2c_master_get_bus_handle(0, &i2c_bus_config);
 
-        
         i2c_current_status = I2C_ESP32_STATUS_INIT;
         if (ESP_OK == rc)
             return I2C_OK;
+        return I2C_FAILED;
     }
-    return I2C_FAILED;
+    return I2C_OK;
 }
 
 // Helper to register device on demand
@@ -98,7 +97,10 @@ void axI2CTerm(void* conn_ctx, int mode)
 {
     esp_err_t rc;
     AX_UNUSED_ARG(mode);
-    rc = i2c_master_bus_rm_device(se50_dev_handle);
+    if (se50_dev_handle != NULL) {
+        i2c_master_bus_rm_device(se50_dev_handle);
+        se50_dev_handle = NULL;
+    }
     i2c_current_status = I2C_ESP32_STATUS_NOT_INIT;
     return;
 }
