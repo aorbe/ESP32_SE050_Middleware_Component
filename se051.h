@@ -20,7 +20,7 @@ extern "C" {
 /**
  * @brief Initializes I2C, authenticates SCP03, and extracts pSe05xSession_t.
  */
-bool se051_session_create(pSe05xSession_t *session);
+pSe05xSession_t se051_session_create(void);
 
 /**
  * @brief Closes SCP03 session, releases I2C bus and allocated memory.

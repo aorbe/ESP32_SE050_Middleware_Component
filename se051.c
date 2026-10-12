@@ -100,81 +100,79 @@ static sss_status_t alloc_and_set_host_key(sss_key_store_t *pHostKs,
 /**
  * @brief Initializes I2C, authenticates SCP03, and extracts pSe05xSession_t.
  */
-bool se051_session_create(pSe05xSession_t *session) {
+pSe05xSession_t se051_session_create(void) {
 
     sss_status_t status;
     // ESP_LOGI(TAG, "Resetting SE051 hardware via ENA pin...");
     // In future should be implemented to reduce consumption
     // se051_hardware_reset();
 
-    if (g_session_active) {
-        return true; // Already open
+    if (!g_session_active) {
+
+        // Ensure I2C peripheral is ready
+        axI2CInit(NULL, NULL);
+
+        // Open host software crypto session (uses mbedTLS on ESP32)
+        // sss_status_t status = sss_host_session_open(&g_host_session, kType_SSS_mbedTLS, 0, kSSS_ConnectionType_Plain, NULL);
+        // if (status != kStatus_SSS_Success) {
+        //     ESP_LOGE("SCP03", "Failed to open host session: 0x%08X", status);
+        //     return false;
+        // }
+
+        // vTaskDelay(pdMS_TO_TICKS(100));
+        // ESP_LOGI(TAG, "sss_host_key_store_context_init");
+
+        // status = sss_host_key_store_context_init(&g_host_ks, &g_host_session);
+        // if (status != kStatus_SSS_Success) {
+        //     return false;
+        // }
+
+        // // Populate Static Keys (ENC, MAC, DEK)
+        // memset(&g_scp03_static_ctx, 0, sizeof(g_scp03_static_ctx));
+        // g_scp03_static_ctx.keyVerNo = 0x02; // 0x01/0x70 for Platform SCP
+
+        // // Allocate & set static base keys
+        // alloc_and_set_host_key(&g_host_ks, &g_scp03_static_ctx.Enc, 1, KEY_CODE_ENC, SCP03_MAX_AUTH_KEY_SIZE);
+        // alloc_and_set_host_key(&g_host_ks, &g_scp03_static_ctx.Mac, 2, KEY_CODE_MAC, SCP03_MAX_AUTH_KEY_SIZE);
+        // alloc_and_set_host_key(&g_host_ks, &g_scp03_static_ctx.Dek, 3, KEY_CODE_DEK, SCP03_MAX_AUTH_KEY_SIZE);
+
+        // // Allocate Dynamic Session Keys (handles only, values generated on handshake)
+        // memset(&g_scp03_dyn_ctx, 0, sizeof(g_scp03_dyn_ctx));
+        // alloc_and_set_host_key(&g_host_ks, &g_scp03_dyn_ctx.Enc,  4, NULL, SCP03_MAX_AUTH_KEY_SIZE);
+        // alloc_and_set_host_key(&g_host_ks, &g_scp03_dyn_ctx.Mac,  5, NULL, SCP03_MAX_AUTH_KEY_SIZE);
+        // alloc_and_set_host_key(&g_host_ks, &g_scp03_dyn_ctx.Rmac, 6, NULL, SCP03_MAX_AUTH_KEY_SIZE);
+
+        // status = sss_host_key_store_allocate(&g_host_ks, __LINE__);
+        // if (kStatus_SSS_Success != status) {
+        //     ESP_LOGE(TAG, "Host: sss_key_store_allocate failed");
+        //     return false;
+        // }
+
+        // Populate SE_Connect_Ctx_t for SCP03
+        memset(&g_connect_ctx, 0, sizeof(g_connect_ctx));
+        g_connect_ctx.connType = kType_SE_Conn_Type_T1oI2C;
+        g_connect_ctx.portName = NULL;
+        // Set SCP03 authentication mode and link context pointers
+        g_connect_ctx.auth.authType = kSSS_AuthType_None;
+        // g_connect_ctx.auth.ctx.scp03.pStatic_ctx = &g_scp03_static_ctx;
+        // g_connect_ctx.auth.ctx.scp03.pDyn_ctx    = &g_scp03_dyn_ctx;
+
+        memset(&g_session, 0, sizeof(g_session));
+
+        // Open clean, lightweight SSS session
+        status = sss_session_open(&g_session, kType_SSS_SE_SE05x, 0, kSSS_ConnectionType_Plain, &g_connect_ctx);
+
+        if (status != kStatus_SSS_Success) {
+            ESP_LOGE("SE051", "sss_session_open failed: 0x%08X", status);
+            return false;
+        }
+
+        g_session_active = true;
     }
-
-    // Ensure I2C peripheral is ready
-    axI2CInit(NULL, NULL);
-
-    // Open host software crypto session (uses mbedTLS on ESP32)
-    // sss_status_t status = sss_host_session_open(&g_host_session, kType_SSS_mbedTLS, 0, kSSS_ConnectionType_Plain, NULL);
-    // if (status != kStatus_SSS_Success) {
-    //     ESP_LOGE("SCP03", "Failed to open host session: 0x%08X", status);
-    //     return false;
-    // }
-
-    // vTaskDelay(pdMS_TO_TICKS(100));
-    // ESP_LOGI(TAG, "sss_host_key_store_context_init");
-
-    // status = sss_host_key_store_context_init(&g_host_ks, &g_host_session);
-    // if (status != kStatus_SSS_Success) {
-    //     return false;
-    // }
-
-    // // Populate Static Keys (ENC, MAC, DEK)
-    // memset(&g_scp03_static_ctx, 0, sizeof(g_scp03_static_ctx));
-    // g_scp03_static_ctx.keyVerNo = 0x02; // 0x01/0x70 for Platform SCP
-
-    // // Allocate & set static base keys
-    // alloc_and_set_host_key(&g_host_ks, &g_scp03_static_ctx.Enc, 1, KEY_CODE_ENC, SCP03_MAX_AUTH_KEY_SIZE);
-    // alloc_and_set_host_key(&g_host_ks, &g_scp03_static_ctx.Mac, 2, KEY_CODE_MAC, SCP03_MAX_AUTH_KEY_SIZE);
-    // alloc_and_set_host_key(&g_host_ks, &g_scp03_static_ctx.Dek, 3, KEY_CODE_DEK, SCP03_MAX_AUTH_KEY_SIZE);
-
-    // // Allocate Dynamic Session Keys (handles only, values generated on handshake)
-    // memset(&g_scp03_dyn_ctx, 0, sizeof(g_scp03_dyn_ctx));
-    // alloc_and_set_host_key(&g_host_ks, &g_scp03_dyn_ctx.Enc,  4, NULL, SCP03_MAX_AUTH_KEY_SIZE);
-    // alloc_and_set_host_key(&g_host_ks, &g_scp03_dyn_ctx.Mac,  5, NULL, SCP03_MAX_AUTH_KEY_SIZE);
-    // alloc_and_set_host_key(&g_host_ks, &g_scp03_dyn_ctx.Rmac, 6, NULL, SCP03_MAX_AUTH_KEY_SIZE);
-
-    // status = sss_host_key_store_allocate(&g_host_ks, __LINE__);
-    // if (kStatus_SSS_Success != status) {
-    //     ESP_LOGE(TAG, "Host: sss_key_store_allocate failed");
-    //     return false;
-    // }
-
-    // Populate SE_Connect_Ctx_t for SCP03
-    memset(&g_connect_ctx, 0, sizeof(g_connect_ctx));
-    g_connect_ctx.connType = kType_SE_Conn_Type_T1oI2C;
-    g_connect_ctx.portName = NULL;
-    // Set SCP03 authentication mode and link context pointers
-    g_connect_ctx.auth.authType = kSSS_AuthType_None;
-    // g_connect_ctx.auth.ctx.scp03.pStatic_ctx = &g_scp03_static_ctx;
-    // g_connect_ctx.auth.ctx.scp03.pDyn_ctx    = &g_scp03_dyn_ctx;
-
-    memset(&g_session, 0, sizeof(g_session));
-
-    // Open clean, lightweight SSS session
-    status = sss_session_open(&g_session, kType_SSS_SE_SE05x, 0, kSSS_ConnectionType_Plain, &g_connect_ctx);
-
-    if (status != kStatus_SSS_Success) {
-        ESP_LOGE("SE051", "sss_session_open failed: 0x%08X", status);
-        return false;
-    }
-
-    g_session_active = true;
 
     // Extract low-level session pointer for Se05x_API_* functions
     sss_se05x_session_t *p_se05x = (sss_se05x_session_t *)&g_session;
-    *session = &p_se05x->s_ctx;
-    return true;
+    return &p_se05x->s_ctx;
 }
 
 /**
