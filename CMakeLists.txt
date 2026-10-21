@@ -55,6 +55,7 @@ set(COMPONENT_SRCS      "${COMPONENT_DIR}/simw-top/hostlib/hostLib/inc/se05x_con
                         "${COMPONENT_DIR}/simw-top/hostlib/hostLib/inc/nxScp03_Const.h"
                         "${COMPONENT_DIR}/simw-top/hostlib/hostLib/inc/nxScp03_Types.h"
                         "${COMPONENT_DIR}/simw-top/sss/src/fsl_sss_apis.c"
+                        "${COMPONENT_DIR}/simw-top/sss/src/se05x/fsl_sss_se05x_policy.c"
                         "${COMPONENT_DIR}/simw-top/sss/src/mbedtls/fsl_sss_mbedtls_apis.c"
                         "${COMPONENT_DIR}/simw-top/sss/src/keystore/keystore_cmn.c"
                         "${COMPONENT_DIR}/simw-top/sss/src/keystore/keystore_pc.c"

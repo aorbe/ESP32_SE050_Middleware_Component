@@ -4,6 +4,7 @@
 /* NXP Plug & Trust Headers */
 #include "ex_sss_boot.h"
 #include "fsl_sss_se05x_apis.h"
+#include "fsl_sss_se05x_policy.h"
 #include "se05x_APDU.h"
 #include "se05x_APDU_apis.h"
 #include "i2c_esp32.h"
